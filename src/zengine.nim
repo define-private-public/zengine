@@ -8,6 +8,7 @@ export
   zengine.gui,
   zengine.models,
   zengine.primitives,
+#  zengine.sprite,
   zengine.text,
   zengine.texture,
   zengine.zgl,
