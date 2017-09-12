@@ -124,6 +124,20 @@ type
   #   vboId: array[7, GLuint]
   #   materialIndex*: int
 
+
+# === Some handy accessor functions === #
+# Texture
+## Get a texture's width (in pixels)
+proc width*(tex: Texture2D): int {.inline.}=
+  return tex.data.w
+
+
+## Get a texture's height (in pixels)
+proc height*(tex: Texture2D): int {.inline.}=
+  return tex.data.h
+
+
+
 var
   stack: array[MATRIX_STACK_SIZE, Mat4f]
   stackCounter = 0
