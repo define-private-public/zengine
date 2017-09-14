@@ -1,13 +1,13 @@
 # Spritebatch is used for rendering a lot of sprites.  This is where all of the OpenGL logic for the sprites live.
 
-import sprite
+from tables import values
 import strfmt
 import glm
-import zgl
-from texture import drawTexture, drawTextureRec
-from geom import Rectangle
-from color import WHITE
-from tables import values
+import ../zgl
+from ../texture import drawTexture, drawTextureRec
+from ../geom import Rectangle
+from ../color import WHITE
+import sprite
 
 # TODO allow for custom OpenGL (i.e. custom rendering batches
 
@@ -15,7 +15,7 @@ from tables import values
 type
   SpriteBatch* = ref object of RootObj
     # TODO make into a sprite
-    renderQueue: seq[ZSprite]        # Order to render objects in, TODO initial size?  (it's a nice optimization)
+    renderQueue: seq[Sprite]         # Order to render objects in, TODO initial size?  (it's a nice optimization)
 
   
 proc initSpriteBatch*(): SpriteBatch=
@@ -26,7 +26,7 @@ proc initSpriteBatch*(): SpriteBatch=
 
 # Adds sprite to the render queue
 # TODO pointer to sprite?  Shouldn't have to copy any data
-proc add*(self: SpriteBatch; spr: ZSprite) {.inline.}=
+proc add*(self: SpriteBatch; spr: Sprite) {.inline.}=
   self.renderQueue.add(spr)
 
 

@@ -1,8 +1,8 @@
 # Example useage of ZSprites
 import ../zengine
 import sdl2, opengl, glm
-import sprite
-import spritebatch
+import sprite/zsprite
+import sprite/spritebatch
 import strfmt
 
 

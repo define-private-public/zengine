@@ -4,23 +4,16 @@ from ospaths import parentDir, joinPath
 from tables import Table, initTable, contains, len, `[]`, `[]=`
 import strfmt
 import glm
-from geom import Rectangle, contains, `$`
-from zgl import Texture2D, width, height
-from texture import loadTexture, drawTexture, drawTextureRec
-from color import WHITE
-from zobject import getNextID
-from entity3d import Entity3D
-import sprite/frame
-import sprite/sequence
-    
-
-# TODO remove Console Logger imports
-import logging as log
-log.addHandler(newConsoleLogger())
+from ../geom import Rectangle, contains, `$`
+from ../zgl import Texture2D, width, height
+from ../texture import loadTexture, drawTexture, drawTextureRec
+from ../color import WHITE
+from ../zobject import getNextID
+import sprite
+import frame
+import sequence
 
 
-# TODO base methods for `Sprite`
-# TODO split `Frame`, `TimeFramed`, `Sequence`, `Sprite`, and `ZSprite` into separate files in a sub folder
 # TODO show default frame
 
 
@@ -43,33 +36,9 @@ proc removeWhitespace(s: string): string {.inline.}=
 
 
 
-
-# The actual sprite object
-type Sprite* = ref object of Entity3D
-  visability*: float    # [0.0, 1.0], visability of the frame
-  scale*: Vec3f         # Scale
-  # TODO non-center orientation origin
-
-
-# ============== #
-# Sprite Methods #
-# ============== #
-
-# Update the sprite's logic. `dt` is the change in time (in seconds) since the
-# last logical update.  E.g. if we're logically updating at 100 FPS, then `0.01`
-# is what should be passed into this.  (NOTE: You're game probably isn't going
-# to be at 100 logical FPS.  It's probably going to flucuate all the time.  This
-# is meant to be an "as if," examle).
-method update*(self: Sprite; dt: float) {.base.}=
-  raise newException(Exception, "Sprite.update() should not be directly called.")
-
-
-# Draw the sprite.  Will call the underlying OpenGL methods to draw the sprite
-# to the screen
-method draw*(self: Sprite) {.base.}=
-  raise newException(Exception, "Sprite.draw() should not be directly called.")
-
-
+# ============ #
+# ZSprite type #
+# ============ #
 
 type
   ZSprite* = ref object of Sprite
@@ -280,7 +249,8 @@ proc loadZSprite*(zspriteFilename: string): ZSprite =
       of FindingVersionNumber:
         if cl == $ValidVersions.V10:
           version = ValidVersions.V10
-          log.info("Detected {0} ZSprite in `{1}`".fmt($version, zspriteFilename))
+#          # TODO re-enable logging
+#          log.info("Detected {0} ZSprite in `{1}`".fmt($version, zspriteFilename))
 
           # Move to the next state
           state = FindingSpriteSheet
@@ -292,7 +262,8 @@ proc loadZSprite*(zspriteFilename: string): ZSprite =
           spritesheetPath = joinPath(spriteDir, cl)
 
         # Print where the sheet is located at
-        log.info("Spritesheet is at: " & spritesheetPath)
+#        # TODO re-enable logging
+#        log.info("Spritesheet is at: " & spritesheetPath)
         sprite.spritesheet = loadTexture(spritesheetPath)
         
         # Shift to finding info
@@ -434,9 +405,11 @@ proc loadZSprite*(zspriteFilename: string): ZSprite =
     state = Done
 
   if state != Done:
-    log.debug("Didn't properly read a file.  Failed at state: " & $state)
+#    # TODO re-enable logging
+#    log.debug("Didn't properly read a file.  Failed at state: " & $state)
     raise newException(ZSpriteLoadError, "Wasn't able to properly read the ZSprite at `{0}`".fmt(zspriteFilename))
 
-  log.info("ZSprite with {0} frame(s) and {1} sequence(s) successfully loaded".fmt(sprite.frames.len(), sprite.sequences.len()))
+#   # TODO re-enable logging
+#  log.info("ZSprite with {0} frame(s) and {1} sequence(s) successfully loaded".fmt(sprite.frames.len(), sprite.sequences.len()))
   return sprite
 
