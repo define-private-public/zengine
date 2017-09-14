@@ -39,6 +39,8 @@ proc clear*(self: SpriteBatch) {.inline.}=
 
 # Draws all of the sprites in the batch
 proc drawAll*(self: SpriteBatch)=
+  # TODO scale?
+  # TODO rotate?
   for spr in self.renderQueue:
     spr.draw()
 #    var

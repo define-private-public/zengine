@@ -3,19 +3,20 @@ from strutils import find, strip, isNilOrEmpty, splitWhitespace, split, join, pa
 from sequtils import map, foldl
 from ospaths import parentDir, joinPath
 from tables import Table, initTable, contains, len, `[]`, `[]=`
+import strfmt
+import glm
 from geom import Rectangle, contains, `$`
 from zgl import Texture2D, width, height
 from texture import loadTexture, drawTexture, drawTextureRec
 from color import WHITE
-import strfmt
-import glm
+from zobject import getNextID
+from entity3d import Entity3D
+    
 
 # TODO remove Console Logger imports
 import logging as log
-#from logging import debug, info
-
-# TODO remove later
 log.addHandler(newConsoleLogger())
+
 
 # TODO base methods for `Sprite`
 # TODO split `Frame`, `TimeFramed`, `Sequence`, `Sprite`, and `ZSprite` into separate files in a sub folder
@@ -151,12 +152,8 @@ proc add*(self: Sequence; frame: Frame; hold: float) {.inline.}=
 
 
 # The actual sprite object
-type Sprite* = ref object of RootObj
+type Sprite* = ref object of Entity3D
   visability*: float    # [0.0, 1.0], visability of the frame
-
-  # Geometric data
-  pos*: Vec3f           # Location
-  rotation*: Mat3f      # Orientation
   scale*: Vec3f         # Scale
   # TODO non-center orientation origin
 
@@ -193,7 +190,6 @@ type
     playbackTime: float                 # playback time (in seconds)
     curFrame: Frame                     # Current frame which is displayed
     curSequence: Sequence               # Which sequence is being played back
-#    prevDrawnFrameName: string          # Used to better optimize drawing
     prevDrawnFrame: Frame               # TODO doc
 
 
@@ -324,8 +320,6 @@ method draw*(self: ZSprite)=
   if self.visability <= 0:
     return
 
-  #TODO prevDrawnFrameName needed?  It was in Masala when I needed it as an optimzation for uv coordiates
-
   # TODO matrix stuff for locaion, rotate, scale, origin, etc.
   # TODO 3D texture drawing?
   drawTextureRec(self.spritesheet, self.curFrame.rect, self.pos.xy, WHITE)
@@ -343,9 +337,8 @@ proc loadZSprite*(zspriteFilename: string): ZSprite =
 
   # Set the initial structure
   var sprite = ZSprite(
+    id: getNextID(),
     visability: 1.0,
-    pos: vec3f(0, 0, 0),
-    rotation: mat3f(1),        # Identity matrix
     scale: vec3f(1, 1, 1),
     frames: initTable[string, Frame](),
     sequences: initTable[string, Sequence](),
@@ -354,7 +347,6 @@ proc loadZSprite*(zspriteFilename: string): ZSprite =
     playbackTime: 0,
     curFrame: nil,
     curSequence: nil,
-#    prevDrawnFrameName: nil,
     prevDrawnFrame: nil
   )
 

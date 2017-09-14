@@ -72,10 +72,9 @@ while running:
   # Update the camera's position
   camera.update(0, 0, 0)
   zs.update(clock.deltaTime())
-  echo(clock.totalTicks())
-  echo(clock.deltaTime())
-  echo(clock.timeElapsed())
-#  echo("dt={0}, t={1}".fmt(deltaTime.format(".3f"), nowTime.format(".3f")))
+#  echo(clock.totalTicks())
+#  echo(clock.deltaTime())
+#  echo(clock.timeElapsed())
 
   # Start drawing
   beginDrawing()
