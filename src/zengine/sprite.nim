@@ -1,4 +1,3 @@
-from math import fmod
 from strutils import find, strip, isNilOrEmpty, splitWhitespace, split, join, parseInt
 from sequtils import map, foldl
 from ospaths import parentDir, joinPath
@@ -11,6 +10,8 @@ from texture import loadTexture, drawTexture, drawTextureRec
 from color import WHITE
 from zobject import getNextID
 from entity3d import Entity3D
+import sprite/frame
+import sprite/sequence
     
 
 # TODO remove Console Logger imports
@@ -23,7 +24,10 @@ log.addHandler(newConsoleLogger())
 # TODO show default frame
 
 
-# === Helper functions ===
+# ================ #
+# Helper Functions #
+# ================ #
+
 # Removes comments from a string
 proc stripOutComments(s: string): string=
   let loc = s.find('#')
@@ -40,117 +44,6 @@ proc removeWhitespace(s: string): string {.inline.}=
 
 
 
-
-# Section from the spritesheet to show
-type Frame* = ref object
-  name*: string       # Name of the Frame
-  rect*: Rectangle    # sub-section of the spritesheet that is one frame
-  origin*: Vec2f      # center (relative to the `rect`) of the Frame,  default is (0, 0)
-
-
-# String representation of a Frame
-proc `$`*(self: Frame): string=
-  var s = "Frame[{0}] r={1}".fmt(self.name, $self.rect)
-  if (self.origin.x) != 0 or (self.origin.y != 0):
-    s &= " o=({0}, {1})".fmt(self.origin.x, self.origin.y)
-
-  return s
-
-
-
-
-
-# A Frame with a timing value
-#
-# It's best not to create these directly.  Use the `add()` proc on the
-# `Sequence` type to do that.
-type TimedFrame* = ref object
-  frame*: Frame       # Frame that should be shown
-  hold*: float        # How long to hold the frame out for (in seconds), should be positive
-
-
-# String representation of a TimedFrame
-proc `$`*(self: TimedFrame): string=
-  return "TimedFrame[{0}] h={1}".fmt(self.frame.name, self.hold)
-
-
-
-
-
-# A collection of frames in order
-type Sequence* = ref object
-  name*: string             # Name of the Sequence
-  frames: seq[TimedFrame]  # Frames that makeup the sequence
-  looping*: bool            # Does the sequence loop?
-  duration: float           # Cache of the total duration of the sequence
-
-
-# String representation of a TimedFrame
-proc `$`*(self: Sequence): string=
-  var s = "Sequence[{0}".fmt(self.name)
-  if self.looping:
-    s &= ", looping"
-  s &= "] "
-
-  for tf in self.frames:
-    s &= "{0}:{1}, ".fmt(tf.frame.name, tf.hold)
-  s = s[0..(s.len() - 3)]
-
-  return s
-
-
-# === Sequence accessors ===
-# Report the length (as in time) of the squence in seconds
-proc duration*(self: Sequence): float {.inline.}=
-#  let holds = map(self.frames, proc(x: TimedFrame): float= x.hold)
-#  return foldl(holds, a + b)
-  return self.duration
-
-
-# Returns the frame at the supplied index.  Throws an error of the index is out
-# of range.
-proc atIndex*(self: Sequence; i: int): TimedFrame {.inline.}=
-  return self.frames[i]
-
-
-# Returns the frame at the time (in floats)
-#
-# If `looping=false`, then this will clamp the boundaires.  Either returning the
-# first frame or the last frame.  If `looping=true` then this will return the
-# Frame at the looped time (which could be any frame).
-#
-# This could cause some sort of problem if there are no frames in the sequence
-# but something trimes to be accessed.
-proc atTime*(self: Sequence; time: float): TimedFrame=
-  var loopedTime: float
-  if self.looping:
-    # Get a modulo'd time
-    loopedTime = fmod(time, self.duration)
-  else:
-    # bounds possiblity
-    if time < 0:
-      return self.frames[0]
-    elif (time >= self.duration):
-      return self.frames[self.frames.len() - 1]
-
-  # Iterate and count the time
-  var t = 0.0
-  for tf in self.frames:
-    t += tf.hold
-    if loopedTime < t:
-      return tf
-
-
-# === Sequence mutators === #
-# Add a frame to the sequence with a supplied hold value (in seconds)
-proc add*(self: Sequence; frame: Frame; hold: float) {.inline.}=
-  self.frames.add(TimedFrame(frame: frame, hold: hold))
-  self.duration += hold
-
-
-
-
-
 # The actual sprite object
 type Sprite* = ref object of Entity3D
   visability*: float    # [0.0, 1.0], visability of the frame
@@ -158,7 +51,10 @@ type Sprite* = ref object of Entity3D
   # TODO non-center orientation origin
 
 
-# === Sprite methods === #
+# ============== #
+# Sprite Methods #
+# ============== #
+
 # Update the sprite's logic. `dt` is the change in time (in seconds) since the
 # last logical update.  E.g. if we're logically updating at 100 FPS, then `0.01`
 # is what should be passed into this.  (NOTE: You're game probably isn't going
@@ -172,8 +68,6 @@ method update*(self: Sprite; dt: float) {.base.}=
 # to the screen
 method draw*(self: Sprite) {.base.}=
   raise newException(Exception, "Sprite.draw() should not be directly called.")
-
-
 
 
 
@@ -217,7 +111,9 @@ type
   ZSpriteLoadError* = object of ValueError
 
 
-# === ZSprite accessors ===
+# ================= #
+# ZSprite Accessors #
+# ================= #
 proc spritesheet*(self: ZSprite): Texture2D {.inline.}=
   return self.spritesheet
 
@@ -228,7 +124,11 @@ proc sequences*(self: ZSprite): Table[string, Sequence] {.inline.}=
   return self.sequences
 
 
-# === ZSprite methods ===
+
+# =============== #
+# ZSprite Methods #
+# =============== #
+
 ## Show a specific named frame of the animated sprite.  This will stop
 ## playing the sprite if it's already playing a sequence.  If `frameName` is not
 ## found then nothing will happen.
